@@ -1,9 +1,15 @@
+#----------------
+# GAME SETTINGS
+#----------------
+# define title
+TITLE = "Gravitate"
+
 # define display surface
-WIDTH, HEIGHT = 800, 700
-HWIDTH, HHEIGHT = WIDTH / 2, HEIGHT / 2
+WIDTH, HEIGHT = 800, 700 # landscape mode
+HWIDTH, HHEIGHT = WIDTH / 2, HEIGHT / 2 #half screen
 AREA = WIDTH * HEIGHT
 
-FPS = 120
+FPS = 120. #frame per second
 
 #define colors
 WHITE = (255, 255, 255)
