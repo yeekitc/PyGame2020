@@ -20,7 +20,8 @@ clock = pygame.time.Clock()
 class player(object):
 	run = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Run', str(x) + '.png')), 0, 2.5) for x in range(1,16)]
 	jump = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Walk', str(x) + '.png')), 0, 2.5) for x in range(1,13)]
-	fall = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Death', 'Character_01_Death_' + str(x) + '.png')), 0, 2.5) for x in range (1,16)]
+	fall = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Death', 'Character_01_Death_' + str(x) + '.png')), 0, 2.5) for x in range (1,17)]
+	blank = pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite','blank.png')), 0, 2.5)
 	
 	#jumpList = [1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,]
 
@@ -34,16 +35,17 @@ class player(object):
 		self.runCount = 0
 		self.falling = False
 		self.fallCount = 0
+		self.fallFrame = 0
 
 	def draw(self, win):
 		if self.jumping:
 			window.blit(self.jump[self.jumpCount//18], (self.x, self.y))
 			if self.jumpCount > 108:
 				self.jumpCount = 0
-			if self.y < 100 and self.jumpCount < 100:
+			if self.y < 80 and self.jumpCount < 100:
 				self.y += 1
 			else:
-				self.y = 100
+				self.y = 80
 			#self.jumpList[self.jumpCount] * 1.2
 			self.jumpCount += 1
 			self.hitbox = (self.x + 50, self.y + 50, self.width-24, self.height-5)
@@ -51,14 +53,24 @@ class player(object):
 			#	self.runCount = 0
 
 		elif self.falling:
-			if self.fallCount < 160:
-				window.blit(self.fall[self.fallCount//10], (self.x, self.y))
-			else:
-				window.blit(self.fall[16],(self.x, self.y))
+			
+			if self.fallFrame % 10 <= 4:
+				if self.fallCount < 160:
+					window.blit(self.fall[self.fallCount//10], (self.x, self.y))
+					self.fallCount += 1
+					
+				if self.fallCount >= 160:
+					window.blit(self.fall[15],(self.x, self.y))
+
+			elif self.fallFrame%10 <= 9:
+				window.blit(self.blank, (self.x, self.y))
+
+			#else:
+				
 			#if self.fallCount > 200:
 			#	self.falling = False
 			#self.jumpList[self.jumpCount] * 1.2
-			self.fallCount += 1
+			self.fallFrame += 1
 			#self.hitbox = (self.x + 50, self.y + 50, self.width-24, self.height-5)
 			#	self.jumping = False
 			#	self.runCount = 0
@@ -123,8 +135,10 @@ class enemyTop(object):
 
 	def collide(self, runner):
 		if (runner[0] + runner[2] > self.hitbox[0]) and (runner[0] < self.hitbox[0] + self.hitbox[2]):
+			if runner[1] + runner[3] > self.hitbox[1] and runner[1] < self.hitbox[1] + self.hitbox[3]:
 			#if runner[1] + runner[3] > self.hitbox[1]:
-			return True
+				#runner.jumping = False
+				return True
 			#else:
 			#	return False
 		else:
@@ -133,7 +147,7 @@ class enemyTop(object):
 		#if runner[0] + runner[2] > self.hitbox[0] and runner[0] < #self.hitbox[0] + self.hitbox[2]:
 		#	if runner[1] + 5 <= self.hitbox[1] + self.hitbox[3]:
 			#if runner[1] + 5 >= self.hitbox[1] and runner[1] + 5 < self.hitbox[1] + self.hitbox[3]:
-			#if runner[1] + runner[3] > self.hitbox[1] and runner[1] < self.hitbox[1] + self.hitbox[3]:
+			
 		#		return True
 		#else:
 		#	return False
@@ -152,8 +166,6 @@ def reset():
 	pass
 
 
-spike = enemy(300, 330, 64, 64)
-
 runner = player(50, 285, 64, 64)
 pygame.time.set_timer(USEREVENT+1, 500)
 pygame.time.set_timer(USEREVENT+2, random.randrange(3000,5000)) #this event generates at random intervals - between 3 and 5 seconds
@@ -163,17 +175,26 @@ run = True
 objects = []
 
 while run:
-	redrawWindow()
+	#redrawWindow()
+	slowCount = 0
 
 	for objectt in objects:
 		if objectt.collide(runner.hitbox):
 			runner.falling = True
-	
-		objectt.x -= 1.4
+			runner.jumping = False
 		
 		if objectt.x < -32:
 			objects.pop(objects.index(objectt))
+		
+		else:
+			objectt.x -= 1.4
 	
+	#if runner.falling == True:
+		#if speed > 0:
+		#	speed = speed - 50
+		#speed = 0
+		#slowCount += 1
+
 	bkgdX -= 1.4
 	bkgdX2 -= 1.4
 	if bkgdX < bkgd.get_width() * -1:
@@ -206,3 +227,4 @@ while run:
 			runner.jumping = False
 
 	clock.tick(speed)
+	redrawWindow()
