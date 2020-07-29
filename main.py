@@ -20,7 +20,7 @@ clock = pygame.time.Clock()
 class player(object):
 	run = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Run', str(x) + '.png')), 0, 2.5) for x in range(1,16)]
 	jump = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Walk', str(x) + '.png')), 0, 2.5) for x in range(1,13)]
-	fall = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Death', 'Character_01_Death_' + str(x) + '.png')), 0, 4) for x in range (1,17)]
+	fall = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Death', 'Character_01_Death_' + str(x) + '.png')), 0, 2.5) for x in range (1,17)]
 	blank = pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite','blank.png')), 0, 2.5)
 	
 	#jumpList = [1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,]
@@ -86,7 +86,7 @@ class player(object):
 			window.blit(self.run[self.runCount//6], (self.x,self.y))
 			self.runCount += 1
 			self.hitbox = (self.x + 50, self.y + 50, self.width - 24, self.height - 5)
-		pygame.draw.rect(window, (255,0,0), self.hitbox, 2)
+		#pygame.draw.rect(window, (255,0,0), self.hitbox, 2)
 
 class enemy(object):
 	img = pygame.transform.rotozoom(pygame.image.load(os.path.join('Obstacle', 'triangle' + '.png')), 0, 0.1)
@@ -105,7 +105,7 @@ class enemy(object):
 		window.blit(self.img, (self.x,self.y))
 
 		self.count += 1
-		pygame.draw.rect(window, (255,0,0), self.hitbox, 2)
+		#pygame.draw.rect(window, (255,0,0), self.hitbox, 2)
 
 	def collide(self, rect):
 		if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
@@ -131,7 +131,7 @@ class enemyTop(object):
 		window.blit(self.img, (self.x,self.y))
 
 		self.count += 1
-		pygame.draw.rect(window, (255,0,0), self.hitbox, 2)
+		#pygame.draw.rect(window, (255,0,0), self.hitbox, 2)
 
 	def collide(self, runner):
 		if (runner[0] + runner[2] > self.hitbox[0]) and (runner[0] < self.hitbox[0] + self.hitbox[2]):
@@ -160,10 +160,24 @@ def redrawWindow():
 	runner.draw(window)
 	for objectt in objects:
 		objectt.draw(window)
-	font = pygame.font.Font(os.path.join('Library 3 am', 'the-ttf.ttf'), 30)
+	font = pygame.font.Font(os.path.join('diffusion', 'ttf', 'diffusion-bold.ttf'), 30)
 	text = font.render('Score: ' + str(score), 1, (255,255,255))
 	window.blit(text,(580,240))
 	pygame.display.update()
+
+def updateFile():
+	f = open('scores.txt', 'r')
+	file = f.readlines()
+	last = int(file[0])
+
+	if last < int(score):
+		f.close()
+		file = open('scores.txt', 'w')
+		file.write(str(score))
+		file.close()
+		return score
+
+	return last
 
 def endScreen():
 	global pause, objects, speed, score
@@ -182,13 +196,14 @@ def endScreen():
 				run = False
 		window.blit(bkgd, (0,0))
 		fontT = pygame.font.Font(os.path.join('Library 3 am', 'the-ttf.ttf'), 60)
-		previousScore = fontT.render('Previous: ', 1, (255,255,255))
+		previousScore = fontT.render('Highest: ' + str(updateFile()), 1, (255,255,255))
 		window.blit(previousScore,(WIDTH/2 - previousScore.get_width()/2, 170))
 		newScore = fontT.render('Score: ' + str(score), 1, (255,255,255))
 		window.blit(newScore,(WIDTH/2 - newScore.get_width()/2, 300))
 		pygame.display.update()
 	
 	score = 0
+	runner.falling = False
 
 
 runner = player(50, 285, 64, 64)
@@ -207,7 +222,7 @@ while run:
 	slowCount = 0
 	if pause > 0:
 		pause += 1
-		if pause > fallSpeed//5:
+		if pause > 150:
 			endScreen()
 			
 
@@ -263,5 +278,12 @@ while run:
 		if(runner.jumping):
 			runner.jumping = False
 
+	for event in pygame.event.get():
+		#check for closing window
+		if event.type == pygame.QUIT:
+			run = False
+
 	clock.tick(speed)
 	redrawWindow()
+
+	
