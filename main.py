@@ -20,7 +20,7 @@ clock = pygame.time.Clock()
 class player(object):
 	run = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Run', str(x) + '.png')), 0, 2.5) for x in range(1,16)]
 	jump = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Walk', str(x) + '.png')), 0, 2.5) for x in range(1,13)]
-	fall = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Death', 'Character_01_Death_' + str(x) + '.png')), 0, 2.5) for x in range (1,17)]
+	fall = [pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite', 'Death', 'Character_01_Death_' + str(x) + '.png')), 0, 4) for x in range (1,17)]
 	blank = pygame.transform.rotozoom(pygame.image.load(os.path.join('Sprite','blank.png')), 0, 2.5)
 	
 	#jumpList = [1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,]
@@ -160,10 +160,35 @@ def redrawWindow():
 	runner.draw(window)
 	for objectt in objects:
 		objectt.draw(window)
+	font = pygame.font.Font(os.path.join('Library 3 am', 'the-ttf.ttf'), 30)
+	text = font.render('Score: ' + str(score), 1, (255,255,255))
+	window.blit(text,(580,240))
 	pygame.display.update()
 
-def reset():
-	pass
+def endScreen():
+	global pause, objects, speed, score
+	pause = 0
+	objects = []
+	speed = 30
+
+	run = True
+	while run:
+		pygame.time.delay(100)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				run = False
+				pygame.quit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				run = False
+		window.blit(bkgd, (0,0))
+		fontT = pygame.font.Font(os.path.join('Library 3 am', 'the-ttf.ttf'), 60)
+		previousScore = fontT.render('Previous: ', 1, (255,255,255))
+		window.blit(previousScore,(WIDTH/2 - previousScore.get_width()/2, 170))
+		newScore = fontT.render('Score: ' + str(score), 1, (255,255,255))
+		window.blit(newScore,(WIDTH/2 - newScore.get_width()/2, 300))
+		pygame.display.update()
+	
+	score = 0
 
 
 runner = player(50, 285, 64, 64)
@@ -172,16 +197,28 @@ pygame.time.set_timer(USEREVENT+2, random.randrange(3000,5000)) #this event gene
 speed = 30
 run = True
 
+pause = 0
+fallSpeed = 0
 objects = []
 
 while run:
-	#redrawWindow()
+	score = speed//10 - 3
+
 	slowCount = 0
+	if pause > 0:
+		pause += 1
+		if pause > fallSpeed//5:
+			endScreen()
+			
 
 	for objectt in objects:
 		if objectt.collide(runner.hitbox):
 			runner.falling = True
 			runner.jumping = False
+
+			if pause == 0:
+				fallSpeed = speed
+				pause += 1
 		
 		if objectt.x < -32:
 			objects.pop(objects.index(objectt))
